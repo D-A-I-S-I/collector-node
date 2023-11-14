@@ -1,0 +1,18 @@
+services:
+  collector:
+    build:
+      context: app
+      target: builder
+    container_name: daisi-collector
+    restart: "no"
+    networks: ["brokers"]
+    develop:
+      watch:
+        - action: rebuild
+          path: ./app
+          target: /app
+
+networks:
+  brokers:
+    name: brokers
+    external: true
