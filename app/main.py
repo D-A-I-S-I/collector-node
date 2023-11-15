@@ -2,16 +2,22 @@ import asyncio
 import nats
 import json
 from nats.errors import ConnectionClosedError, TimeoutError, NoServersError
+import pyshark
+import os
+from asyncer import asyncify
+
+#3. does not work either
+def capture2():
+    capture =  pyshark.LiveCapture(interface='wlo1')
+    for packet in capture.sniff_continuously(packet_count=5):
+        print(packet)
 
 async def main():
     # It is very likely that the demo server will see traffic from clients other than yours.
     # To avoid this, start your own locally and modify the example to use it.
-    nc = await nats.connect("nats://daisi-broker:4222")
-
-    # wait for data
-    # put data into json format
-
-    await nc.publish("updates", json.dumps({"id": "1", "module": "any module", "data": "nice data",}).encode())
+    nats_url = os.getenv("BROKER_URL", "nats://localhost:4222")
+    nc = await nats.connect(nats_url)
+    await asyncify(capture2)()
 
 if __name__ == "__main__":
     asyncio.run(main())
