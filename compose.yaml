@@ -6,11 +6,6 @@ services:
     container_name: daisi-collector
     restart: "no"
     networks: ["brokers"]
-    develop:
-      watch:
-        - action: rebuild
-          path: ./app
-          target: /app
 
 networks:
   brokers:
