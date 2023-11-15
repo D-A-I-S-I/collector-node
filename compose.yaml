@@ -6,11 +6,8 @@ services:
     container_name: daisi-collector
     restart: "no"
     networks: ["brokers"]
-    develop:
-      watch:
-        - action: rebuild
-          path: ./app
-          target: /app
+    environment:
+      - BROKER_URL=nats://daisi-broker:4222
 
 networks:
   brokers:
