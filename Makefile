@@ -1,3 +1,5 @@
+run:
+	docker compose run --build collector
 up:
 	docker compose up -d --build
 down:
