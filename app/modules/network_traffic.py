@@ -1,16 +1,16 @@
 import pyshark
-import BaseCollector
+from modules import BaseCollector
 
 class NetworkTrafficCollector(BaseCollector): 
 
     def __init__(self):
         super().__init__(self)
 
-    def collect():
-        arr = []
+    def collect(self):
         capture =  pyshark.LiveCapture(interface='wlo1')
         for packet in capture.sniff_continuously(packet_count=5):
-            arr.append(str(packet))
+            self.data.append(str(packet))
     
-    def publish():
+    async def publish():
+        super.publish()
         return
