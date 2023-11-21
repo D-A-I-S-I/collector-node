@@ -1,1 +1,2 @@
 from modules.network_traffic import NetworkTrafficCollector
+from modules.system_calls import SystemCallsCollector

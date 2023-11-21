@@ -1,4 +1,4 @@
-from modules import NetworkTrafficCollector
+from modules import NetworkTrafficCollector, SystemCallsCollector
 import asyncio
 from asyncer import asyncify
 
@@ -8,4 +8,9 @@ async def test_networking_class():
     await asyncify(nw_collector.collect)()
     await nw_collector.publish()
 
-asyncio.run(test_networking_class())
+async def test_system_calls_class():
+    nw_collector = await SystemCallsCollector.create()
+    await asyncify(nw_collector.collect)()
+    await nw_collector.publish()
+
+asyncio.run(test_system_calls_class())
