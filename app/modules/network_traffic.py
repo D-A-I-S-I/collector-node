@@ -5,21 +5,17 @@ import asyncio
 from asyncer import asyncify
 
 class NetworkTrafficCollector(BaseCollector): 
+    module_name = "network_traffic"
+
     def collect(self):
         capture =  pyshark.LiveCapture(interface='wlan0')
         for packet in capture.sniff_continuously(packet_count=1):
             self.data.append(str(packet))
 
-    async def contious_send(self):
-            for point in self.data:
-                print(point)
-                await self.send("network_traffic", point)
-                self.data.remove(point)
-
     async def run(self):
         while True:
             await asyncify(self.collect)()
-            await self.contious_send()
+            await self.publish()
 
             # await asyncio.sleep(1)
 

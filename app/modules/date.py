@@ -5,7 +5,8 @@ from modules.common import BaseCollector
 
 
 class DateCollector(BaseCollector):
+    module_name = "date"
     async def run(self):
         while True:
-            await self.send("date", {"time": datetime.now().strftime("%Y-%m-%d")})
+            await self.send({"time": datetime.now().strftime("%Y-%m-%d")})
             await asyncio.sleep(1)

@@ -34,6 +34,9 @@ class Collector:
             elif module == 'date':
                 print("Date module")
                 self.tasklist.append(modules.DateCollector(self.nc))
+            elif module == 'system_calls':
+                print("System calls module")
+                self.tasklist.append(modules.SystemCallsCollector(self.nc))
             else:
                 print(f"Module {module} not found")
 

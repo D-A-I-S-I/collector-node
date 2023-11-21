@@ -4,11 +4,9 @@ import sys
 import json
 
 class SystemCallsCollector(BaseCollector): 
+    module_name = "system_calls"
 
-    def __init__(self):
-        super().__init__()
-
-    def collect(self):
+    async def collect(self):
         command = ['strace', '-f',"ls" ,"-l"] #switch to other comment later
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
@@ -26,7 +24,3 @@ class SystemCallsCollector(BaseCollector):
         json_data = json.dumps(system_calls, indent=2)
 
         self.data.append(json_data)
-
-    async def publish(self):
-        await super().publish()
-        return
