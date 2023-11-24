@@ -2,13 +2,15 @@ import subprocess
 from modules.common import BaseCollector
 import sys
 import json
+import shlex
 
 class SystemCallsCollector(BaseCollector): 
     module_name = "system_calls"
 
     async def collect(self):
-        command = ['strace', '-f',"ls" ,"-l"] #switch to other comment later
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        command = "sysdig -p'%evt.num %evt.arg'" #I think it must be a number in here but did not found the field yet
+        formatted_command = shlex.split(command)
+        process = subprocess.Popen(formatted_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
 
         # Check for errors
