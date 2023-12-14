@@ -20,25 +20,29 @@ class NetworkTrafficCollector(BaseCollector):
         #self.data.append(pkt)
 
     def transform(self,inputfile):
-        #tshark -r input.pcap -T json >output.json
+        #command = "../FlowMeter/pkg/flowmeter -ifLiveCapture=false -fname=packet -maxNumPackets=40000000 -ifLocalIPKnown false INFO[0000] Liv" 
+        #command = "tshark -r packet.pcap -T json -x > packet.json"
+        #formatted_command = shlex.split(command)
+        #subprocess.run(formatted_command)
         with open("outfile.json","w") as outfile:
             subprocess.run(["tshark", "-r",
                 os.path.join(inputfile),
-                "-T", "json"],
+                "-T", "json", "-x"],
                 stdout=outfile, check=True)
+               
     
     def collect(self):
         file = "packet.pcap"
         output = open(file, "w")
         print(type(output))
         capture = pyshark.LiveCapture(interface="wlo1", output_file=file)
-        capture.sniff(10)
+        capture.sniff(packet_count=15000)
         output.close()
-        json_file = self.transform(file)
-        print(type(json_file))
+        self.transform(file)
+
         with open("outfile.json", 'r') as openfile:
             json_object = json.load(openfile)
-        self.file = json_object
+        self.data.append(json_object)
         return
 
     async def run(self):
@@ -46,10 +50,9 @@ class NetworkTrafficCollector(BaseCollector):
             await asyncify(self.collect)()
             await self.publish()
 
-
     async def publish(self):
         # for point in self.data:
-        await self.nc.publish("updates", json.dumps({"id": "1", "module": "any module", "data": self.file,}).encode())
+        await self.nc.publish("updates", json.dumps({"id": "1", "module": "network_traffic", "data": self.data,}).encode())
 
     def collect_flow(self):
         command = "sysdig -p'%evt.num %evt.arg'" #I think it must be a number in here but did not found the field yet
