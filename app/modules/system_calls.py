@@ -1,28 +1,59 @@
-import subprocess
-from modules.common import BaseCollector
-import sys
+import asyncio
 import json
+import os
 import shlex
+import subprocess
+import sys
+from queue import Empty, Queue
+from threading import Thread
 
-class SystemCallsCollector(BaseCollector): 
+from modules.common import BaseCollector
+
+
+class SystemCallsCollector(BaseCollector):
     module_name = "system_calls"
+    pids = os.getenv("SYSTEM_CALLS_PIDS")
+
+    async def run(self):
+        self.data = ""
+        if len(self.pids.split(",")) == 1:
+            self.strace_column_with_digits = 1
+        else:
+            self.strace_column_with_digits = 3
+        await asyncio.gather(self.publish(), self.collect())
+        return
+
+    async def publish(self):
+        while True:
+            if self.data:
+                await self.send(self.data)
+                self.data = ""
+            await asyncio.sleep(1)
 
     async def collect(self):
-        command = "sysdig -p'%evt.num %evt.arg'" #I think it must be a number in here but did not found the field yet
-        formatted_command = shlex.split(command)
-        process = subprocess.Popen(formatted_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
+        def enqueue_output(out, queue):
+            for line in iter(out.readline, b''):
+                queue.put(line)
+            out.close()
 
-        # Check for errors
-        if process.returncode != 0:
-            print(f"Error running strace: {stderr.decode('utf-8')}")
-            return None
+        command = ["strace", "-n", "--silent=all", "-p", self.pids]
+        p = subprocess.Popen(command, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, text=True, bufsize=1)
+        q = Queue()
+        t = Thread(target=enqueue_output, args=(p.stderr, q))
+        t.daemon = True
+        t.start()
 
-        # Parse the strace output and extract system calls
-        strace_output = stdout.decode('utf-8')
-        system_calls = [line.strip() for line in strace_output.split('\n') if line.strip()]
-
-        # Convert system calls to JSON
-        json_data = json.dumps(system_calls, indent=2)
-
-        self.data.append(json_data)
+        while True:
+            if p.poll() is not None:  # Check if subprocess has terminated
+                error_message = p.stderr.read()
+                print(f"strace failed to run: {error_message}")
+                break  # Exit the loop or perform other error handling
+            try:
+                line = q.get_nowait()
+                digits = line.split()[
+                    self.strace_column_with_digits].strip("]")
+                self.data = self.data + " " + digits
+            except Empty:
+                pass
+            await asyncio.sleep(0.1)
