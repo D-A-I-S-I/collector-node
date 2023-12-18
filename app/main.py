@@ -14,7 +14,7 @@ class Collector:
     async def create(cls):
         self = cls()
         self.enabled_modules = os.getenv(
-            "ENABLED_MODULES", "network_traffic").split(",")
+            "ENABLED_MODULES", "time,date").split(",")
         self.tasklist = []
         self.nats_url = os.getenv("BROKER_URL", "nats://localhost:4222")
         self.nc = await nats.connect(self.nats_url)
