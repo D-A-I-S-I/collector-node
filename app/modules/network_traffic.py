@@ -38,7 +38,7 @@ class NetworkTrafficCollector(BaseCollector):
 
 
     async def collect(self):
-        command = ["tshark", "-i", self.interface, "-T", "json", "-x", "-c", str(self.packet_count)]
+        command = ["tshark", "-i", self.interface, "-c", str(self.packet_count), "-w", "-"]
 
         # Create subprocess
         process = await asyncio.create_subprocess_exec(
@@ -51,12 +51,7 @@ class NetworkTrafficCollector(BaseCollector):
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            # Process completed successfully, parse JSON output
-            try:
-                json_data = json.loads(stdout.decode())
-                self.data.append(json_data)
-            except json.JSONDecodeError as e:
-                print(f"Failed to decode JSON from process output: {e}")
+            self.data.append(stdout)
         else:
             # Process failed, handle errors
             print(f"Command failed with exit code {process.returncode}")
