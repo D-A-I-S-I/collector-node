@@ -8,5 +8,5 @@ class TimeCollector(BaseCollector):
     module_name = "time"
     async def run(self):
         while True:
-            await self.send({"time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+            await self.send(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             await asyncio.sleep(1)
