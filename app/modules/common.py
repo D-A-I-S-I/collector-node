@@ -1,5 +1,6 @@
 import json
 import os
+import pickle
 
 import nats
 
@@ -12,7 +13,7 @@ class BaseCollector:
         self.data = []
 
     async def send(self, data):
-        await self.nc.publish("updates", json.dumps({"id": "1", "module": self.module_name, "data": data, }).encode())
+        await self.nc.publish("updates", pickle.dumps(data), headers={'module_name': self.module_name})
 
     async def publish(self):
         for point in self.data:
