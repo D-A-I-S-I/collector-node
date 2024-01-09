@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from modules.common import BaseCollector
 class SystemCallsCollector(BaseCollector):
     module_name = "system_calls"
     pids = os.getenv("SYSTEM_CALLS_PIDS")
+    strace_regex = re.compile(r"(?:\[ {1,3})(\d{1,3})(?:\])")
 
     async def run(self):
         self.data = ""
@@ -51,9 +53,11 @@ class SystemCallsCollector(BaseCollector):
                 break  # Exit the loop or perform other error handling
             try:
                 line = q.get_nowait()
-                digits = line.split()[
-                    self.strace_column_with_digits].strip("]")
-                self.data = self.data + " " + digits
+                digits_match = self.strace_regex.search(line)
+                if digits_match:
+                    digits = self.strace_regex.search(line).group(1)
+                    self.data = self.data + " " + digits
+                    print(self.data)
             except Empty:
                 pass
             await asyncio.sleep(0.1)
